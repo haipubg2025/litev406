@@ -13,6 +13,8 @@ interface GameplayParsedData {
   outline?: string;
   mainText?: string;
   suggestedActions?: Array<{ action: string; details?: string; timeCost?: string }>;
+  options?: Array<{ action: string; details?: string; timeCost?: string }>;
+  choices?: Array<{ action: string; details?: string; timeCost?: string }>;
   worldStateUpdate?: string;
   worldState?: string;
 }
@@ -274,11 +276,11 @@ export function regexExtractGameplayData(rawText: string): GameplayParsedData | 
 
     // E. Trích xuất suggestedActions
     // Tìm mảng suggestedActions thô
-    const actionsBlockMatch = rawText.match(/"suggestedActions"\s*:\s*\[([\s\S]*?)\]/);
+    const actionsBlockMatch = rawText.match(/"(?:suggestedActions|options|choices)"\s*:\s*\[([\s\S]*?)\]/);
     if (actionsBlockMatch) {
       const actionsBlock = actionsBlockMatch[1];
       // Tìm từng đối tượng { "action": "...", "details": "...", "timeCost": "..." } bên trong mảng
-      const actionItemPattern = /\{\s*"action"\s*:\s*"([\s\S]*?)"\s*(?:,\s*"details"\s*:\s*"([\s\S]*?)")?\s*(?:,\s*"timeCost"\s*:\s*"([\s\S]*?)")?\s*\}/gi;
+      const actionItemPattern = /\{\s*"(?:action|text|title|name|option)"\s*:\s*"([\s\S]*?)"\s*(?:,\s*"(?:details|description)"\s*:\s*"([\s\S]*?)")?\s*(?:,\s*"timeCost"\s*:\s*"([\s\S]*?)")?\s*\}/gi;
       const actions: any[] = [];
       let itemMatch;
       while ((itemMatch = actionItemPattern.exec(actionsBlock)) !== null) {
@@ -287,6 +289,16 @@ export function regexExtractGameplayData(rawText: string): GameplayParsedData | 
           details: itemMatch[2] ? decodeJsonEscapeSymbols(itemMatch[2]) : undefined,
           timeCost: itemMatch[3] ? decodeJsonEscapeSymbols(itemMatch[3]) : undefined
         });
+      }
+      // Fallback: if it's an array of strings
+      if (actions.length === 0) {
+        const stringPattern = /"([^"\\]*(?:\\.[^"\\]*)*)"/g;
+        let strMatch;
+        while ((strMatch = stringPattern.exec(actionsBlock)) !== null) {
+          actions.push({
+            action: decodeJsonEscapeSymbols(strMatch[1])
+          });
+        }
       }
       if (actions.length > 0) {
         data.suggestedActions = actions;
@@ -474,6 +486,8 @@ export function cleanRawOutputText(text: string): string {
     /"npcLocations"\s*:\s*\[[\s\S]*?\]/gi,
     /"outline"\s*:\s*"[^"]*",?/gi,
     /"suggestedActions"\s*:\s*\[[\s\S]*?\]/gi,
+    /"options"\s*:\s*\[[\s\S]*?\]/gi,
+    /"choices"\s*:\s*\[[\s\S]*?\]/gi,
     /"mcUpdates"\s*:\s*\{[\s\S]*?\}/gi,
     /"npcUpdates"\s*:\s*\[[\s\S]*?\]/gi,
     /"newNPCs"\s*:\s*\[[\s\S]*?\]/gi,

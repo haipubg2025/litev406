@@ -1142,7 +1142,10 @@ Hành động tiếp theo của người chơi: ${userAction}`;
                   fullStreamLog: useStore.getState().fullScreenStreamData,
                   outline: parsedData.outline,
                   mainText: assembledText,
-                  suggestedActions: parsedData.suggestedActions,
+                  suggestedActions: Array.isArray(parsedData.suggestedActions) ? parsedData.suggestedActions : 
+                                    (Array.isArray(parsedData.options) ? parsedData.options : 
+                                    (Array.isArray(parsedData.choices) ? parsedData.choices : 
+                                    (typeof parsedData.suggestedActions === 'object' && parsedData.suggestedActions !== null ? Object.values(parsedData.suggestedActions) : []))),
                   worldTime: parsedData.worldTime,
                   mcLocation: parsedData.mcLocation,
                   npcLocations: parsedData.npcLocations,
@@ -1964,20 +1967,21 @@ Hành động tiếp theo của người chơi: ${userAction}`;
                                         <div className="grid grid-cols-1 gap-0 -mx-5 md:-mx-6 border-t border-transparent">
                                           {turn.aiMsg.suggestedActions.map(
                                             (actionItem: any, idx: number) => {
+                                              if (!actionItem) return null;
                                               const actionTitle =
                                                 typeof actionItem === "string"
                                                   ? actionItem
-                                                  : actionItem.action;
+                                                  : actionItem.action || actionItem.text || actionItem.title || actionItem.name || actionItem.option;
                                               const details =
                                                 typeof actionItem === "object"
-                                                  ? actionItem.details
+                                                  ? actionItem.details || actionItem.description
                                                   : null;
                                               const timeCost =
                                                 typeof actionItem === "object"
                                                   ? actionItem.timeCost
                                                   : null;
 
-                                              let actionText = actionTitle;
+                                              let actionText = actionTitle || "Gợi ý hành động (Trống)";
                                               if (details && timeCost) {
                                                 actionText += `\n${details}\n[Thời gian dự kiến: ${timeCost}]`;
                                               } else if (details) {

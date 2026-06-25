@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { User, X, Shield, Activity, Fingerprint, BookOpen, Star, Info, Crown, Key, Edit3, Save, Flame, Users, FileText, ChevronDown, ChevronRight, Check } from 'lucide-react';
+import { User, X, Shield, Activity, Fingerprint, BookOpen, Star, Info, Crown, Key, Edit3, Save, Flame, Users, FileText, ChevronDown, ChevronRight, Check, ArrowDownToLine, ArrowUpToLine } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { DEV_IMAGES } from '../constants/devImages';
 import LazyImage from './LazyImage';
@@ -280,6 +280,19 @@ export default function CharacterModal({ type, npcIndex, onClose }: CharacterMod
     return localStorage.getItem('hideNpcAppearance') === 'true';
   });
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  };
+
+  const scrollToTop = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  };
 
   const toggleAppearanceCollapse = () => {
     const newState = !isAppearanceCollapsed;
@@ -626,6 +639,17 @@ export default function CharacterModal({ type, npcIndex, onClose }: CharacterMod
                 <span className="hidden md:inline font-bold tracking-wider text-xs">SỬA</span>
               </button>
             )}
+            <button
+              onClick={scrollToBottom}
+              className={`p-1.5 rounded-lg transition-colors border cursor-pointer flex items-center justify-center ${
+                isDark
+                  ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200 shadow-sm'
+              }`}
+              title="Cuộn xuống cuối"
+            >
+              <ArrowDownToLine size={18} />
+            </button>
             <button 
               onClick={onClose} 
               className={`p-1.5 rounded-lg transition-colors border cursor-pointer ${
@@ -641,7 +665,7 @@ export default function CharacterModal({ type, npcIndex, onClose }: CharacterMod
         </div>
 
         {/* Scrollable Container */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10 w-full flex flex-col">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar relative z-10 w-full flex flex-col">
           <div className="flex flex-col xl:flex-row p-4 md:p-8 gap-8 w-full mx-auto flex-1">
             {/* Left Column: Avatar */}
             <div className="flex flex-col items-center xl:items-start xl:w-[420px] shrink-0">
@@ -1009,16 +1033,27 @@ export default function CharacterModal({ type, npcIndex, onClose }: CharacterMod
             </div>
           </div>
 
-          {type === 'npc' && (
-            <div className="w-full max-w-4xl mx-auto px-4 pb-8 z-10 relative mt-4">
+          <div className={`w-full max-w-4xl mx-auto px-4 pb-8 z-10 relative mt-4 flex gap-4 ${type !== 'npc' ? 'justify-end' : ''}`}>
+            {type === 'npc' && (
               <button 
                 onClick={handleDeleteNPC}
-                className="w-full py-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-sm transition-colors border border-red-500 shadow-lg"
+                className="flex-1 py-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-sm transition-colors border border-red-500 shadow-lg"
               >
                   Xóa NPC
               </button>
-            </div>
-          )}
+            )}
+            <button
+              onClick={scrollToTop}
+              className={`p-4 rounded-xl transition-colors border cursor-pointer flex items-center justify-center flex-shrink-0 ${
+                isDark
+                  ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200 shadow-sm'
+              }`}
+              title="Cuộn lên đầu"
+            >
+              <ArrowUpToLine size={20} />
+            </button>
+          </div>
 
         </div>
       </div>
